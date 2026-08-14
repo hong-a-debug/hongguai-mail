@@ -542,15 +542,12 @@ export function Home() {
                 className="flex-1 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all cursor-not-allowed opacity-50">
                 销毁邮箱（已禁用）
               </button>
-              {canSendEmails && (
-                <button
-                  onClick={() => setShowSenderModal(true)}
-                  className="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-medium hover:shadow-lg hover:shadow-cyan-500/30 transition-all">
-                  {t("Send email")}
-                </button>
-              )}
+              <button
+                onClick={() => setShowSenderModal(true)}
+                className="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-medium hover:shadow-lg hover:shadow-cyan-500/30 transition-all">
+                发送邮件
+              </button>
             </div>
-          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <FeatureCard
