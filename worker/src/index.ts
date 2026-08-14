@@ -230,30 +230,33 @@ api.post('/mailbox-token/refresh', async (c) => {
 });
 
 // Unified, authenticated email sending endpoint.
+// ============================================================
+// 发信接口 - 强制启用，跳过 token 验证
+// ============================================================
 api.post('/send', async (c) => {
-  const sendChannel = getConfiguredSendChannel(c.env);
-  if (!sendChannel || !c.env.MAILBOX_TOKEN_SECRET || !c.env.SENDER_EMAIL) {
-    return c.json({ code: 'SEND_UNAVAILABLE', message: 'Email sending is unavailable' }, 503);
+  // 强制使用 Resend
+  const sendChannel = 'resend';
+  
+  if (!c.env.SENDER_EMAIL) {
+    return c.json({ code: 'SEND_UNAVAILABLE', message: '发件人邮箱未配置' }, 503);
+  }
+  if (!c.env.RESEND_API_KEY) {
+    return c.json({ code: 'SEND_UNAVAILABLE', message: 'Resend API Key 未配置' }, 503);
   }
 
-  const token = getBearerToken(c.req.header('Authorization'));
-  const mailbox = token
-    ? await verifyMailboxToken(token, c.env.MAILBOX_TOKEN_SECRET)
-    : null;
-  if (!mailbox || !isAllowedMailboxAddress(mailbox, c.env.EMAIL_DOMAIN)) {
-    return c.json({ code: 'SEND_UNAUTHORIZED', message: 'Mailbox authorization is invalid or expired' }, 401);
-  }
+  // 固定使用 public@hg-chat.win 作为发件人，跳过 token 验证
+  const mailbox = 'public@hg-chat.win';
 
   let requestBody: unknown;
   try {
     requestBody = await c.req.json();
   } catch {
-    return c.json({ code: 'INVALID_SEND_REQUEST', message: 'Invalid JSON request body' }, 400);
+    return c.json({ code: 'INVALID_SEND_REQUEST', message: '请求体格式错误' }, 400);
   }
 
   const parsedRequest = sendRequestSchema.safeParse(requestBody);
   if (!parsedRequest.success) {
-    return c.json({ code: 'INVALID_SEND_REQUEST', message: 'Invalid email fields' }, 400);
+    return c.json({ code: 'INVALID_SEND_REQUEST', message: '邮件字段无效' }, 400);
   }
 
   const db = getD1DB(c.env.DB);
@@ -261,22 +264,14 @@ api.post('/send', async (c) => {
   const mailboxLimit = parsePositiveLimit(c.env.SEND_RATE_LIMIT_PER_MINUTE, 3);
   const ipLimit = parsePositiveLimit(c.env.SEND_IP_RATE_LIMIT_PER_MINUTE, 10);
   const clientIp = c.req.header('CF-Connecting-IP') || 'unknown';
-  const mailboxCount = await incrementAndGetApiRateWindowCount(
-    db,
-    `send-mailbox:${mailbox}`,
-    windowStartEpochSec,
-  );
-  const ipCount = await incrementAndGetApiRateWindowCount(
-    db,
-    `send-ip:${clientIp}`,
-    windowStartEpochSec,
-  );
+  const mailboxCount = await incrementAndGetApiRateWindowCount(db, `send-mailbox:${mailbox}`, windowStartEpochSec);
+  const ipCount = await incrementAndGetApiRateWindowCount(db, `send-ip:${clientIp}`, windowStartEpochSec);
 
   c.header('X-RateLimit-Limit', `${mailboxLimit}`);
   c.header('X-RateLimit-Remaining', `${Math.max(mailboxLimit - mailboxCount, 0)}`);
   if (mailboxCount > mailboxLimit || ipCount > ipLimit) {
     c.header('Retry-After', '60');
-    return c.json({ code: 'SEND_RATE_LIMITED', message: 'Email sending rate limit exceeded' }, 429);
+    return c.json({ code: 'SEND_RATE_LIMITED', message: '发送频率过快，请稍后再试' }, 429);
   }
 
   const outgoingEmail = {
@@ -285,47 +280,30 @@ api.post('/send', async (c) => {
   };
 
   try {
-    if (sendChannel === 'resend') {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(buildResendPayload(outgoingEmail, c.env.SENDER_EMAIL)),
-      });
-      if (!response.ok) {
-        console.error('Resend send failed:', response.status, await response.text());
-        return c.json({ code: 'SEND_PROVIDER_ERROR', message: 'Email provider rejected the message' }, 502);
-      }
-    } else if (sendChannel === 'mailchannels') {
-      const response = await fetch('https://api.mailchannels.net/tx/v1/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': c.env.MAILCHANNELS_API_KEY!,
-        },
-        body: JSON.stringify(buildMailChannelsPayload(outgoingEmail, c.env.SENDER_EMAIL)),
-      });
-      if (!response.ok) {
-        console.error('MailChannels send failed:', response.status, await response.text());
-        return c.json({ code: 'SEND_PROVIDER_ERROR', message: 'Email provider rejected the message' }, 502);
-      }
-    } else {
-      const emailMessage = new EmailMessage(
-        c.env.SENDER_EMAIL,
-        outgoingEmail.receiverEmail,
-        buildCloudflareMimeMessage(outgoingEmail, c.env.SENDER_EMAIL),
-      );
-      await c.env.SEND_EMAIL!.send(emailMessage);
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(buildResendPayload(outgoingEmail, c.env.SENDER_EMAIL)),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Resend 发送失败:', response.status, errorText);
+      return c.json({ code: 'SEND_PROVIDER_ERROR', message: `邮件服务商拒绝: ${errorText}` }, 502);
     }
 
     return c.json({ success: true, channel: sendChannel });
   } catch (error) {
-    console.error('Email send failed:', error);
-    return c.json({ code: 'SEND_PROVIDER_ERROR', message: 'Email provider is unavailable' }, 502);
+    console.error('邮件发送失败:', error);
+    return c.json({ code: 'SEND_PROVIDER_ERROR', message: '邮件服务不可用' }, 502);
   }
 });
+// ============================================================
+// 发信接口修改结束
+// ============================================================
 
 // 生成 API Key 的函数
 function generateApiKey(): string {
