@@ -44,3 +44,9 @@ command = "pnpm run build"
 [assets]
 binding = "ASSETS"
 directory = "frontend/build/client"
+
+#日志配置
+[observability.logs]
+enabled = true
+invocation_logs = true
+
