@@ -13,15 +13,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22' # 使用 Node 22，暂不升级到 24
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: '9.1.0'
-
-      - name: Install dependencies
-        run: pnpm install
+          # 新增这一行，让 action 自动运行 install
+          run_install: true
 
       - name: Build
         run: pnpm run build
