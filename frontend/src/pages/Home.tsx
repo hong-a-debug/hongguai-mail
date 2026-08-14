@@ -94,7 +94,7 @@ export function Home() {
     address || "",
     mailboxToken,
   );
-  const canSendEmails = Boolean(address && mailboxToken && config.sendChannel);
+  const canSendEmails = Boolean(address && mailboxToken);
 
   const {
     data: emails = [],
