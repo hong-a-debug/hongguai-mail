@@ -23,7 +23,7 @@ export function Footer() {
 
           <div className="flex items-center gap-6 text-sm">
             <a
-              href="https://github.com/hong-a-debug/cunmail"
+              href="https://github.com/hong-a-debug/hongguai-mail"
               target="_blank"
               rel="noopener noreferrer"
               className="text-slate-400 hover:text-cyan-400 transition-colors">
