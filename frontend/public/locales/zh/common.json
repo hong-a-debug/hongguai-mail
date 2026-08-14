@@ -1,0 +1,59 @@
+{
+  "appName": "红怪邮箱",
+  "heroTitle": "红怪邮箱 保护隐私，拒绝垃圾邮件",
+  "heroSubtitle": "不用注册，即开即用，用完即焚",
+  "getStarted": "立即开始",
+  "emailPlaceholder": "输入邮箱前缀...",
+  "generate": "生成邮箱",
+  "copy": "复制",
+  "copied": "已复制！",
+  "refresh": "刷新",
+  "noEmails": "暂无邮件",
+  "from": "发件人",
+  "subject": "主题",
+  "date": "日期",
+  "expiry": "有效期",
+  "expiryOptions": {
+    "1h": "1 小时",
+    "6h": "6 小时",
+    "24h": "24 小时",
+    "7d": "7 天"
+  },
+  "delete": "删除",
+  "deleteConfirm": "确定要删除这封邮件吗？",
+  "compose": "写邮件",
+  "send": "发送",
+  "to": "收件人",
+  "content": "内容",
+  "sendSuccess": "发送成功！",
+  "sendFailed": "发送失败",
+  "login": "登录",
+  "logout": "退出",
+  "password": "密码",
+  "savePassword": "保存密码",
+  "viewPassword": "查看密码",
+  "note": "备注",
+  "saveNote": "保存备注",
+  "footerPoweredBy": "© 2026 红怪邮箱",
+  "footerBlog": "",
+  "footerGitHub": "GitHub",
+  "githubLink": "https://github.com/hong-a-debug/cunmail",
+  "blogLink": "",
+  "about": "关于",
+  "stats": {
+    "totalMailboxes": "累计创建邮箱",
+    "totalMessages": "累计接收邮件",
+    "totalApiKeys": "累计创建 API Key",
+    "totalApiCalls": "累计 API 调用"
+  },
+  "notification": {
+    "title": "新邮件",
+    "body": "您有一封新邮件"
+  },
+  "errors": {
+    "generateFailed": "生成邮箱失败，请重试",
+    "fetchFailed": "获取邮件失败",
+    "deleteFailed": "删除失败",
+    "sendFailed": "发送失败，请重试"
+  }
+}
