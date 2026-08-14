@@ -223,7 +223,6 @@ export function Home() {
     prevEmailsLength.current = emails.length;
   }, [emails, address, hasReceivedEmail, expiryTimestamp]);
 
-  // ========== 禁用生成邮箱，使用固定邮箱 ==========
   const handleCreateAddress = async () => {
     toast.error("此邮箱为固定共享邮箱，无需创建");
     return;
@@ -454,7 +453,6 @@ export function Home() {
             </div>
           </div>
 
-          {/* ========== 固定邮箱地址展示 ========== */}
           <div className="glass-card p-5 space-y-4">
             <div>
               <div className="text-xs text-slate-400 mb-2 font-medium">
@@ -548,6 +546,7 @@ export function Home() {
                 发送邮件
               </button>
             </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <FeatureCard
@@ -595,7 +594,6 @@ export function Home() {
             </ol>
           </div>
 
-          {/* ========== 红怪社区 ========== */}
           <div className="glass-card p-4 bg-gradient-to-br from-cyan-500/5 to-purple-500/5">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🚀</span>
@@ -637,7 +635,6 @@ export function Home() {
               </a>
             </div>
           </div>
-          {/* ========== 红怪社区结束 ========== */}
         </div>
 
         <div className="flex-1 min-w-0">
