@@ -1,4 +1,4 @@
-name = "cunmail"
+name = "hongguai-mail"
 main = "worker/src/index.ts"
 
 # 打包配置
